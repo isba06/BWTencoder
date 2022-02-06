@@ -58,7 +58,7 @@ string str_ToMFT(const string& str) {
 
         //alphabet table permutation
         char searchedSymbol = tabAscii[i];
-        for(int j = 1; j < i; j++){
+        for(int j = 0; j < i; j++){
             char a = tabAscii[j+1];
             tabAscii[j+1] = tabAscii[j];
             tabAscii[j] = a;
@@ -101,7 +101,7 @@ int main() {
     else{
         cout << "File not open" << endl;
     }
-    string kl = "asdadas";
+    string kl = "When Farmer Oak smiled, the corners of his mouth";
     //BWT(kl);
     reverseBWT(BWT(kl));
     str_ToMFT(BWT(kl).first);
