@@ -36,11 +36,14 @@ void reverseBWT(const pair<string, int>& strAndIndex){
         }
         sort(vecStr.begin(), vecStr.end());
     }
-    printVector(vecStr);
+
 }
 //for decoder
 vector<char> tableASCII(){
     vector<char> table;
+    char a = '\n';
+    table.push_back(a);
+    table.reserve(97);
     for (char i = ' '; i <= '~'; ++i) {
         table.push_back(i);
     }
@@ -49,14 +52,23 @@ vector<char> tableASCII(){
 string str_ToMFT(const string& str) {
     vector<char> tabAscii = tableASCII();
     string encodedStr;
-    for(char item : str){
-        int i = 0;
-        while(item != tabAscii[i]){
-            i++;
+    int cs = 0;
+    for(auto item : str){
+        int i;
+        for(i = 0; i < tabAscii.size(); i++){
+            if(tabAscii[i] == item){
+                break;
+            }
         }
         encodedStr += to_string(i) + " ";
 
         //alphabet table permutation
+        /*
+        for(auto ascii : tabAscii){
+            cout << int(ascii) << ((int(ascii) % 16 == 15) ? '\n' : ' ');
+        }
+        cout << endl;
+         */
         char searchedSymbol = tabAscii[i];
         for(int j = 0; j < i; j++){
             char a = tabAscii[j+1];
@@ -64,8 +76,9 @@ string str_ToMFT(const string& str) {
             tabAscii[j] = a;
         }
         tabAscii[0] = searchedSymbol;
+        //cout << endl;
     }
-    cout << encodedStr <<endl;
+    cout << encodedStr << endl;
     return encodedStr;
 }
 
@@ -101,14 +114,12 @@ int main() {
     else{
         cout << "File not open" << endl;
     }
-    string kl = "When Farmer Oak smiled, the corners of his mouth";
-    //BWT(kl);
-    reverseBWT(BWT(kl));
+    string kl = "\\fIAdditional key words and phrases:\\fR  arithmetic coding, Huffman coding, adaptive modeling\n";
+    //reverseBWT(BWT(kl));
     str_ToMFT(BWT(kl).first);
-    /*
-    std::cout << "Printable ASCII [32..126]:\n";
-    for (int i = ' '; i <= '~'; ++i) {
-        std::cout <<i << ((i % 16 == 15) ? '\n' : ' ');
-    }*/
+    vector<char> tabAscii = tableASCII();
+    for(auto item : tabAscii){
+        cout << item << ((int(item)%16 == 15) ? '\n': ' ');
+    }
     return 0;
 }
