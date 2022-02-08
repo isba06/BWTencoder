@@ -53,10 +53,11 @@ string reverseMTF(const string& line){
     string strline;
     stringstream line2(line);
     vector<char> tabAscii = tableASCII();
+    cout << "rev:";
     while(getline(line2, number, ' ')){
         for(int i = 0; i<tabAscii.size(); i++){
             if(i==stoi(number)){
-                //cout << i << " ";
+                cout << i << " ";
                 strline.push_back(tabAscii[i]);
                 char searchedSymbol = tabAscii[i];
                 for(int j = 0; j < i; j++){
@@ -69,31 +70,48 @@ string reverseMTF(const string& line){
             }
         }
     }
-    //cout << endl;
+    cout << endl<<endl;
+    int pt = 0;
+    for(auto item : tabAscii){
+        pt++;
+        cout << int (item) << ((pt%16 == 15) ? '\n': ' ');
+    }
+    cout << endl<<endl;
     //cout << " size reverse tab:"<<tabAscii.size()<<endl;
+    cout<<"rev:" << strline<<endl;
     return strline;
 }
 string str_ToMFT(const string& str) {
     vector<char> tabAscii = tableASCII();
     string encodedStr;
+    int i;
     for(auto item : str){
-        int i;
+
         for(i = 0; i < tabAscii.size(); i++){
             if(tabAscii[i] == item){
                 break;
             }
         }
         encodedStr += to_string(i) + " ";
-        //alphabet table permutation
-        char searchedSymbol = tabAscii[i];
-        for(int j = 0; j < i; j++){
-            char a = tabAscii[j+1];
-            tabAscii[j+1] = tabAscii[j];
-            tabAscii[j] = a;
+        for(i = 0; i < tabAscii.size(); i++){
+            cout << i <<":" <<tabAscii[i] << " ";
         }
-        tabAscii[0] = searchedSymbol;
+        //alphabet table permutation
+        //char searchedSymbol = tabAscii[i];
+        for(int j = i; j >= 0; j--){
+            char a = tabAscii[j];
+            tabAscii[j] = tabAscii[j-1];
+            tabAscii[j-1] = a;
+        }
+        //tabAscii[0] = searchedSymbol;
+        for(i = 0; i < tabAscii.size(); i++){
+            cout << i <<": " <<tabAscii[i] << " ";
+        }
+        cout << endl << endl;
     }
+
     //cout << " mtf size:" << tabAscii.size() << endl;
+    cout << "mtf:" << encodedStr << endl;
     return encodedStr;
 }
 
@@ -112,13 +130,14 @@ string BWT(string& line){
             buffPos = pos;
         lineOut += item.back();
     }
+    cout << "bwt:" << lineOut << endl;
     return lineOut;
 
 }
 
 
 int main() {
-    ifstream inFile("bib");
+    ifstream inFile("bib89");
     if(inFile.is_open()){
         string line;
         while(!inFile.eof()){
@@ -129,17 +148,13 @@ int main() {
     else{
         cout << "File not open" << endl;
     }
-    string kl = " Is mail Bayramov asdads\n";
-    //reverseBWT(BWT(kl));
-    string a = BWT(kl);
-    string b = str_ToMFT(a);
-    string c = reverseMTF(b);
-    cout<<endl << a << endl;
-    cout<< endl << b << endl;
-    cout<<endl << c << endl;
+    string kl = "Is mail Bayram ov asda&&~%ds", kl2 = "Ismail Bayramov";
+    string rt = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    string  b = str_ToMFT(kl2), c = reverseMTF(b);
     vector<char> tabAscii = tableASCII();
+    int i = 0;
     for(auto item : tabAscii){
-        cout << item << ((int(item)%16 == 15) ? '\n': ' ');
+        cout<< i++ <<": " << item << ((int(item)%16 == 15) ? '\n': ' ');
     }
     return 0;
 }
