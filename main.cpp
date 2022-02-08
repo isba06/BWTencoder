@@ -70,13 +70,6 @@ string reverseMTF(const string& line){
             }
         }
     }
-    cout << endl<<endl;
-    int pt = 0;
-    for(auto item : tabAscii){
-        pt++;
-        cout << int (item) << ((pt%16 == 15) ? '\n': ' ');
-    }
-    cout << endl<<endl;
     //cout << " size reverse tab:"<<tabAscii.size()<<endl;
     cout<<"rev:" << strline<<endl;
     return strline;
@@ -93,19 +86,19 @@ string str_ToMFT(const string& str) {
             }
         }
         encodedStr += to_string(i) + " ";
-        for(i = 0; i < tabAscii.size(); i++){
-            cout << i <<":" <<tabAscii[i] << " ";
+        for(auto item : tabAscii){
+            cout<< item << ((int(item)%16 == 15) ? '\n': ' ');
         }
         //alphabet table permutation
         //char searchedSymbol = tabAscii[i];
-        for(int j = i; j >= 0; j--){
+        for(int j = i; j > 0; j--){
             char a = tabAscii[j];
             tabAscii[j] = tabAscii[j-1];
             tabAscii[j-1] = a;
         }
         //tabAscii[0] = searchedSymbol;
-        for(i = 0; i < tabAscii.size(); i++){
-            cout << i <<": " <<tabAscii[i] << " ";
+        for(auto item : tabAscii){
+            cout<< item << ((int(item)%16 == 15) ? '\n': ' ');
         }
         cout << endl << endl;
     }
@@ -148,13 +141,13 @@ int main() {
     else{
         cout << "File not open" << endl;
     }
-    string kl = "Is mail Bayram ov asda&&~%ds", kl2 = "Ismail Bayramov";
+    string kl = "Is mail Bayram ov asda&&~%ds\n", kl2 = "Ismail Bayramov";
     string rt = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-    string  b = str_ToMFT(kl2), c = reverseMTF(b);
+    string  a = BWT(kl2), b = str_ToMFT(a), c = reverseMTF(b);
     vector<char> tabAscii = tableASCII();
     int i = 0;
     for(auto item : tabAscii){
-        cout<< i++ <<": " << item << ((int(item)%16 == 15) ? '\n': ' ');
+        cout<< item << ((int(item)%16 == 15) ? '\n': ' ');
     }
     return 0;
 }
