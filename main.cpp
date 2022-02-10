@@ -21,7 +21,6 @@ void printVector(vector<string> &a){
     }
 }
 //for decoder
-//надо сделать поиск по концу строки, пока что не работает
 string reverseBWT(const string& line){
     vector <string> vecStr;
     string str = line;
@@ -41,9 +40,6 @@ string reverseBWT(const string& line){
         }
     }
 }
-
-
-
 vector<char> tableASCII(){
     vector<char> table;
     char a = '\n';
@@ -53,6 +49,7 @@ vector<char> tableASCII(){
     table.push_back(a);
     return table;
 }
+//переделать разделение с  пробела на три символа
 string reverseMTF(const string& line){
     string number;
     string strline;
@@ -62,19 +59,15 @@ string reverseMTF(const string& line){
         for(int i = 0; i<tabAscii.size(); i++){
             if(i==stoi(number)){
                 strline.push_back(tabAscii[i]);
-                //char searchedSymbol = tabAscii[i];
                 for(int j = i; j > 0; j--){
                     char a = tabAscii[j];
                     tabAscii[j] = tabAscii[j-1];
                     tabAscii[j-1] = a;
                 }
-                //tabAscii[0] = searchedSymbol;
                 break;
             }
         }
     }
-    //cout << " size reverse tab:"<<tabAscii.size()<<endl;
-    //cout<< endl <<"rev:" << strline<<endl;
     return strline;
 }
 string str_ToMFT(const string& str) {
@@ -88,19 +81,14 @@ string str_ToMFT(const string& str) {
                 break;
             }
         }
-        encodedStr += to_string(i) + " ";
+        encodedStr +=  to_string(100 + i) + " ";
         //alphabet table permutation
-        //char searchedSymbol = tabAscii[i];
         for(int j = i; j > 0; j--){
             char a = tabAscii[j];
             tabAscii[j] = tabAscii[j-1];
             tabAscii[j-1] = a;
         }
-        //tabAscii[0] = searchedSymbol;
     }
-
-    //cout << " mtf size:" << tabAscii.size() << endl;
-    //cout << "mtf:" << encodedStr << endl;
     return encodedStr;
 }
 
@@ -119,32 +107,87 @@ string BWT(string& line){
             buffPos = pos;
         lineOut += item.back();
     }
-    //cout << "bwt:" << lineOut << endl;
     return lineOut;
 
 }
+struct tableFrequency{
+    map<int, unsigned int> table;
+    vector <double> probability;
+    void calcFreq(const string& line){
+        stringstream linestream(line);
+        string numberMTF;
+        while(getline(linestream, numberMTF, ' ')){
+            table[stoi(numberMTF)]++;
+        }
+    }
 
+    void calcProbability(unsigned sum){
+        for (const auto& item : table){
+            probability.push_back(item.second/(double)sum);
+        }
+    }
 
+    unsigned sum(){
+        unsigned number = 0;
+        for(auto && item : table)
+            number += item.second;
+        return number;
+    }
+    void printMap(){
+        int i = -1;
+        cout << "Char   Freq   Prob" << endl;
+        for (const auto& item : table){
+            cout << item.first << ": " << item.second << ": "  << probability[++i] << endl;
+        }
+    }
+};
+
+struct encoding {
+    char encode;
+    double low;
+    double high;
+    double cumulativeProbability;
+
+    string calcEncode(const string& lineMTF){
+        cumulativeProbability = 0;
+        for (int i = 1; i < 95; i++){
+        }
+    }
+};
+
+bool comp (pair<int, double> a, pair<int, double> b){
+    return a.first > b.first;
+}
 int main() {
     ifstream inFile("bib");
     if(inFile.is_open()){
+        tableFrequency freq;
         string line;
         while(!inFile.eof()){
             getline(inFile, line);
             line += '\n';
-            cout << reverseBWT(reverseMTF( str_ToMFT(BWT(line))));
+            freq.calcFreq(str_ToMFT(BWT(line)));
         }
+        unsigned s = freq.sum();
+        freq.calcProbability(s);
+        freq.printMap();
+        cout << freq.sum() << endl;
+        vector<pair<int, double>> sortedFreqProb;
+        int indexProb = -1;
+        for(auto& item : freq.table){
+            sortedFreqProb.push_back(make_pair(item.second, freq.probability[++indexProb]));
+        }
+        std::sort(sortedFreqProb.begin(), sortedFreqProb.end(), [](auto &left, auto &right) {
+            return left.second < right.second;
+        });
+        for(auto& item : sortedFreqProb){
+            cout << item.first << " : " << item.second <<endl;
+        }
+
+
     }
     else{
         cout << "File not open" << endl;
-    }
-    //string kl = "Is mail Bayram ov asda&&~%ds\n", kl2 = "Ismail Bayramov\n";
-    //string rt = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-    //string  a = BWT(kl2), b = str_ToMFT(a), c = reverseMTF(b), d = reverseBWT(c);
-    vector<char> tabAscii = tableASCII();
-    int i = 0;
-    for(auto item : tabAscii){
-        cout<< item << ((int(item)%16 == 15) ? '\n': ' ');
     }
     return 0;
 }
