@@ -177,7 +177,7 @@ int main() {
         for(auto& item : freq.table){
             sortedFreqProb.push_back(make_pair(item.second, freq.probability[++indexProb]));
         }
-        std::sort(sortedFreqProb.begin(), sortedFreqProb.end(), [](auto &left, auto &right) {
+        std::sort(sortedFreqProb.begin(), sortedFreqProb.end(), [](const std::pair<int,int> &left, const std::pair<int,int> &right) {
             return left.second < right.second;
         });
         for(auto& item : sortedFreqProb){
