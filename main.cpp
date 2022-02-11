@@ -110,25 +110,19 @@ string BWT(string& line){
     return lineOut;
 
 }
-struct tableFrequency{
-    map<int, unsigned int> table;
-    vector <double> probability;
-    void calcFreq(const string& line){
+struct tableFrequency {
+    map<int, int> table;
+
+    void calcFreq(const string &line) {
         stringstream linestream(line);
         string numberMTF;
-        while(getline(linestream, numberMTF, ' ')){
+        while (getline(linestream, numberMTF, ' ')) {
             table[stoi(numberMTF)]++;
         }
     }
 
-    void calcProbability(unsigned sum){
-        for (const auto& item : table){
-            probability.push_back(item.second/(double)sum);
-        }
-    }
-
-    unsigned sum(){
-        unsigned number = 0;
+    int sum(){
+        int number = 0;
         for(auto && item : table)
             number += item.second;
         return number;
@@ -137,7 +131,7 @@ struct tableFrequency{
         int i = -1;
         cout << "Char   Freq   Prob" << endl;
         for (const auto& item : table){
-            cout << item.first << ": " << item.second << ": "  << probability[++i] << endl;
+            cout << item.first << ": " << item.second << endl;
         }
     }
 };
@@ -147,7 +141,6 @@ struct encoding {
     double low;
     double high;
     double cumulativeProbability;
-
     string calcEncode(const string& lineMTF){
         cumulativeProbability = 0;
         for (int i = 1; i < 95; i++){
@@ -155,8 +148,32 @@ struct encoding {
     }
 };
 
-bool comp (pair<int, double> a, pair<int, double> b){
-    return a.first > b.first;
+vector <pair<int, double>> sortVec(vector <pair<int, double>>& a){
+    for(int j = 0; j<a.size();j++) {
+        for (int i = 0; i < a.size(); i++) {
+            if (a[i + 1].first > a[i].first) {
+                pair<int, double> b = a[i];
+                a[i] = a[i + 1];
+                a[i + 1] = b;
+            }
+        }
+    }
+}
+struct alltable{
+    int intchar;
+    int freq;
+    double probability = 0.;
+};
+void sort_vector_alltable(vector<alltable>& n) {
+    for (int j = 0; j < n.size(); j++) {
+        for (int i = 0; i < n.size(); i++) {
+            if (n[i].freq < n[i+1].freq) {
+                int b = n[i].freq;
+                n[i].freq = n[i+1].freq;
+                n[i+1].freq = b;
+            }
+        }
+    }
 }
 int main() {
     ifstream inFile("bib");
@@ -168,23 +185,24 @@ int main() {
             line += '\n';
             freq.calcFreq(str_ToMFT(BWT(line)));
         }
-        unsigned s = freq.sum();
-        freq.calcProbability(s);
+        int sum = freq.sum();
         freq.printMap();
         cout << freq.sum() << endl;
-        vector<pair<int, double>> sortedFreqProb;
-        int indexProb = -1;
+        vector<alltable> vec;
+        int index = -1;
+        alltable a{};
         for(auto& item : freq.table){
-            sortedFreqProb.push_back(make_pair(item.second, freq.probability[++indexProb]));
+            a.intchar = item.first;
+            a.freq = item.second;
+            vec.push_back(a);
         }
-        std::sort(sortedFreqProb.begin(), sortedFreqProb.end(), [](const std::pair<int,int> &left, const std::pair<int,int> &right) {
-            return left.second < right.second;
-        });
-        for(auto& item : sortedFreqProb){
-            cout << item.first << " : " << item.second <<endl;
+        //sort
+        sort_vector_alltable(vec);
+        cout << "Char   Freq   Prob" << endl;
+        for (auto& item : vec){
+            cout << item.intchar << " : " << item.freq << " : " << item.probability <<endl;
         }
-
-
+        cout << vec[0].freq;
     }
     else{
         cout << "File not open" << endl;
