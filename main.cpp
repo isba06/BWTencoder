@@ -4,6 +4,7 @@
 #include <map>
 #include <algorithm>
 #include <sstream>
+#include <math.h>
 using namespace std;
 
 
@@ -20,6 +21,7 @@ void printVector(vector<string> &a){
         cout << item << endl;
     }
 }
+
 //for decoder
 string reverseBWT(const string& line){
     vector <string> vecStr;
@@ -144,35 +146,37 @@ struct tableFrequency {
 struct alltable{
     int intchar;
     int freq;
-    double probability;
-    double cumulativeProbability;
+    long double probability;
+    long double cumulativeProbability;
 };
 struct encoding {
     char encode;
-    double F;
-    double G;
-    string calcEncode(const string& lineMTF, vector<alltable>& tab){
+    long double F;
+    long double G;
+    long double calcEncode(const string& lineMTF, vector<alltable>& tab){
         F = 0;
         G = 1;
         for(int i = 0; i < lineMTF.size(); i+=3){
             string str1 = lineMTF.substr(i, 3);
             for (int j = 0; j < tab.size(); j++){
                 if(stoi(str1) == tab[j].intchar){
-                    F+=tab[j].cumulativeProbability* G;
-                    G *= tab[j].probability;
+                    F = F + tab[j].cumulativeProbability * G;
+                    G = G * tab[j].probability;
                     cout << F << ", " << G << endl;
                     break;
                 }
             }
         }
+
+        return -log2(G) + 1;
     }
 };
 
-vector <pair<int, double>> sortVec(vector <pair<int, double>>& a){
+vector <pair<int, long double>> sortVec(vector <pair<int, long double>>& a){
     for(int j = 0; j<a.size();j++) {
         for (int i = 0; i < a.size(); i++) {
             if (a[i + 1].first > a[i].first) {
-                pair<int, double> b = a[i];
+                pair<int, long double> b = a[i];
                 a[i] = a[i + 1];
                 a[i + 1] = b;
             }
@@ -181,8 +185,6 @@ vector <pair<int, double>> sortVec(vector <pair<int, double>>& a){
 }
 
 void sort_vector_alltable(vector<alltable>& n) {
-    int kbj;
-    double dfs;
     for (int j = 0; j < n.size(); j++) {
         for (int i = 0; i < n.size(); i++) {
             if (n[i].freq < n[i+1].freq) {
@@ -199,6 +201,32 @@ void calculate_cumulativeProbability(vector<alltable>& tab){
         tab[i].cumulativeProbability = tab[i-1].cumulativeProbability + tab[i-1].probability;
     }
 }
+
+
+struct {
+    static std::pair<double,double> getProbability( char c )
+    {
+        if (c >= 'A' && c <= 'z')
+            return std::make_pair( (c - 'A') * .01, (c - 'A') * .01 + .01);
+        else
+            exit(1);
+    }
+} model;
+double testEncoding(string& line) {
+    double high = 1.0;
+    double low = 0.0;
+    char c;
+    stringstream input(line);
+    while (input >> c) {
+        cout << c << endl;
+        std::pair<double, double> p = model.getProbability(c);
+        double range = high - low;
+        high = low + range * p.second;
+        low = low + range * p.first;
+    }
+    return low + (high - low) / 2;
+}
+
 int main() {
     ifstream inFile("bib4567");
     if(inFile.is_open()){
@@ -209,7 +237,7 @@ int main() {
             line += '\n';
             freq.calcFreq(str_ToMFT(BWT(line)));
         }
-        double sum = freq.sum();
+        long double sum = freq.sum();
         freq.printMap();
         cout << freq.sum() << endl;
         vector<alltable> vec;
@@ -232,10 +260,11 @@ int main() {
     else{
         cout << "File not open" << endl;
     }
-    string kl = "ismail bayramov\n";
+    string kl = "%T Implementation of a Telidon system using Unix file structures\n";
+    string MTFansBWTstr = "166165167166165"; //str_ToMFT(BWT(kl)); //
     tableFrequency freq;
-    freq.calcFreq(str_ToMFT(BWT(kl)));
-    double sum = freq.sum();
+    freq.calcFreq(MTFansBWTstr);
+    long double sum = freq.sum();
     freq.printMap();
     cout << freq.sum() << endl;
     vector<alltable> vec;
@@ -256,7 +285,11 @@ int main() {
         cout << item.intchar << " : " << item.freq << " : " << item.probability<< " : " <<item.cumulativeProbability <<endl;
     }
     encoding enc{};
-    enc.calcEncode(str_ToMFT(BWT(kl)), vec);
-    cout << "Here: "<< enc.F << ", " << enc.G << endl;
+    cout << "BWT: " << BWT(MTFansBWTstr) << " MTF: " << MTFansBWTstr << endl;
+    cout << "LOG: " << enc.calcEncode(MTFansBWTstr, vec) << endl;
+    cout << "F + G/2: "<< enc.F + enc.G/2 <<endl;
+    string jk = "bcbab";
+    cout << testEncoding(jk) << endl;
     return 0;
+
 }
