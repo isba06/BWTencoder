@@ -160,6 +160,7 @@ struct encoding {
                 if(stoi(str1) == tab[j].intchar){
                     F+=tab[j].cumulativeProbability* G;
                     G *= tab[j].probability;
+                    cout << F << ", " << G << endl;
                     break;
                 }
             }
@@ -196,7 +197,6 @@ void calculate_cumulativeProbability(vector<alltable>& tab){
     tab[0].cumulativeProbability = 0;
     for (int i = 1; i < tab.size(); i++){
         tab[i].cumulativeProbability = tab[i-1].cumulativeProbability + tab[i-1].probability;
-
     }
 }
 int main() {
@@ -221,6 +221,7 @@ int main() {
         }
         //sort
         sort_vector_alltable(vec);
+        calculate_cumulativeProbability(vec);
         cout << "Char   Freq   Prob" << endl;
         for (auto& item : vec){
             item.probability = item.freq/sum;
@@ -231,7 +232,7 @@ int main() {
     else{
         cout << "File not open" << endl;
     }
-    string kl = "asdasfdssaxcbghmbnmhgrut c dd54321 asuiou oi12154\n";
+    string kl = "ismail bayramov\n";
     tableFrequency freq;
     freq.calcFreq(str_ToMFT(BWT(kl)));
     double sum = freq.sum();
@@ -246,11 +247,16 @@ int main() {
     }
     //sort
     sort_vector_alltable(vec);
+    for (auto& item : vec){
+        item.probability = item.freq/sum;
+    }
     calculate_cumulativeProbability(vec);
     cout << "Char Freq  Prob  Cumulative" << endl;
     for (auto& item : vec){
-        item.probability = item.freq/sum;
         cout << item.intchar << " : " << item.freq << " : " << item.probability<< " : " <<item.cumulativeProbability <<endl;
     }
+    encoding enc{};
+    enc.calcEncode(str_ToMFT(BWT(kl)), vec);
+    cout << "Here: "<< enc.F << ", " << enc.G << endl;
     return 0;
 }
