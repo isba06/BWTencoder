@@ -55,16 +55,16 @@ vector<char> tableASCII(){
 string reverseMTF(const string& line){
     string number;
     string strline;
-    stringstream line2(line);
     vector<char> tabAscii = tableASCII();
-    while(getline(line2, number, ' ')){
-        for(int i = 0; i<tabAscii.size(); i++){
-            if(i==stoi(number)){
+    for(int i = 0; i < line.size(); i+=3) {
+        string number = line.substr(i, 3);
+        for (int i = 0; i < tabAscii.size(); i++) {
+            if (i+100 == stoi(number)) {
                 strline.push_back(tabAscii[i]);
-                for(int j = i; j > 0; j--){
+                for (int j = i; j > 0; j--) {
                     char a = tabAscii[j];
-                    tabAscii[j] = tabAscii[j-1];
-                    tabAscii[j-1] = a;
+                    tabAscii[j] = tabAscii[j - 1];
+                    tabAscii[j - 1] = a;
                 }
                 break;
             }
@@ -72,18 +72,25 @@ string reverseMTF(const string& line){
     }
     return strline;
 }
-string str_ToMFT(const string& str) {
-    vector<char> tabAscii = tableASCII();
+string str_ToMFT(const string& str ) {
     string encodedStr;
     int i;
+    vector<char> tabAscii = tableASCII();
     for(auto item : str){
-
         for(i = 0; i < tabAscii.size(); i++){
             if(tabAscii[i] == item){
                 break;
             }
         }
-        encodedStr +=  to_string(100 + i);
+        encodedStr += to_string(i) + " ";
+        /*
+        if(i/10 > 1) {
+            encodedStr += "0" + to_string(i);
+        }
+        else {
+            encodedStr += "00" + to_string(i);
+        }
+        */
         //alphabet table permutation
         for(int j = i; j > 0; j--){
             char a = tabAscii[j];
@@ -148,6 +155,8 @@ struct alltable{
     int freq;
     long double probability;
     long double cumulativeProbability;
+    long double left;
+    long double right;
 };
 struct encoding {
     char encode;
@@ -202,44 +211,52 @@ void calculate_cumulativeProbability(vector<alltable>& tab){
     }
 }
 
-
-struct {
-    static std::pair<double,double> getProbability( char c )
-    {
-        if (c >= 'A' && c <= 'z')
-            return std::make_pair( (c - 'A') * .01, (c - 'A') * .01 + .01);
-        else
-            exit(1);
+void mtfto_binaryfile(const string& mtf, ofstream& fout){
+    stringstream line(mtf);
+    string str1;
+    while(getline(line, str1, ' ')) {
+        //string str1 = mtf.substr(i, 3);
+        int num = stoi(str1);
+        //cout << "num: " <<num << endl;
+        fout.write(reinterpret_cast<const char *>(&num), sizeof(char));
     }
-} model;
-double testEncoding(string& line) {
-    double high = 1.0;
-    double low = 0.0;
-    char c;
-    stringstream input(line);
-    while (input >> c) {
-        cout << c << endl;
-        std::pair<double, double> p = model.getProbability(c);
-        double range = high - low;
-        high = low + range * p.second;
-        low = low + range * p.first;
-    }
-    return low + (high - low) / 2;
 }
 
 int main() {
-    ifstream inFile("bib4567");
+    ifstream inFile("bib");
     if(inFile.is_open()){
+        ofstream out_mtf_bwt_binary("BWT_MTF_Binary", ios::binary);
+        ofstream out_bwt("BWT");
+        ofstream out_mtf("MTF");
         tableFrequency freq;
         string line;
         while(!inFile.eof()){
             getline(inFile, line);
             line += '\n';
-            freq.calcFreq(str_ToMFT(BWT(line)));
+            string str_bwt = BWT(line);
+            string str_mtf = str_ToMFT(str_bwt);
+            out_bwt << str_bwt;
+            out_mtf << str_mtf;
+            cout << str_mtf << endl;
+            //string dec = reverseBWT(reverseMTF(str_mtf));
+            mtfto_binaryfile(str_mtf, out_mtf_bwt_binary);
+            //freq.calcFreq(str_mtf);
         }
+        out_mtf_bwt_binary.close();
+        out_mtf.close();
+        out_bwt.close();
+
+        ifstream i("BWT_MTF_Binary" ,ios::binary);
+        if(i.is_open()) {
+            int toRestore=0;
+            while(i.read((char *) &toRestore, sizeof(char))){
+                cout << toRestore;
+            };
+        }
+/*
         long double sum = freq.sum();
-        freq.printMap();
-        cout << freq.sum() << endl;
+        //freq.printMap();
+        cout <<"freq sum: " <<freq.sum() << endl;
         vector<alltable> vec;
         alltable a{};
         for(auto& item : freq.table){
@@ -250,46 +267,22 @@ int main() {
         //sort
         sort_vector_alltable(vec);
         calculate_cumulativeProbability(vec);
-        cout << "Char   Freq   Prob" << endl;
-        for (auto& item : vec){
-            item.probability = item.freq/sum;
-            cout << item.intchar << " : " << item.freq << " : " << item.probability <<endl;
-        }
-        cout << vec[0].freq;
+        */
     }
     else{
         cout << "File not open" << endl;
+        ifstream in("text.txt", ios::binary);
+        string kl = "mississippi$";
+        //string bwt = BWT(kl), mtf = str_ToMFT(bwt);
+        //cout << bwt << endl << mtf << endl;
+        //string revmtf = reverseMTF(mtf);
+        //cout << revmtf <<endl;
+        //string revBWT = reverseBWT(revmtf);
+        //cout << revBWT << endl;
+        string n = "173145164";
+        //cout << reverseBWT(revmtf) <<endl;
     }
-    string kl = "%T Implementation of a Telidon system using Unix file structures\n";
-    string MTFansBWTstr = "166165167166165"; //str_ToMFT(BWT(kl)); //
-    tableFrequency freq;
-    freq.calcFreq(MTFansBWTstr);
-    long double sum = freq.sum();
-    freq.printMap();
-    cout << freq.sum() << endl;
-    vector<alltable> vec;
-    alltable a{};
-    for(auto& item : freq.table){
-        a.intchar = item.first;
-        a.freq = item.second;
-        vec.push_back(a);
-    }
-    //sort
-    sort_vector_alltable(vec);
-    for (auto& item : vec){
-        item.probability = item.freq/sum;
-    }
-    calculate_cumulativeProbability(vec);
-    cout << "Char Freq  Prob  Cumulative" << endl;
-    for (auto& item : vec){
-        cout << item.intchar << " : " << item.freq << " : " << item.probability<< " : " <<item.cumulativeProbability <<endl;
-    }
-    encoding enc{};
-    cout << "BWT: " << BWT(MTFansBWTstr) << " MTF: " << MTFansBWTstr << endl;
-    cout << "LOG: " << enc.calcEncode(MTFansBWTstr, vec) << endl;
-    cout << "F + G/2: "<< enc.F + enc.G/2 <<endl;
-    string jk = "bcbab";
-    cout << testEncoding(jk) << endl;
+
     return 0;
 
 }
